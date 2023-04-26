@@ -7,6 +7,8 @@ android {
     namespace 'com.nailorsh.morfi'
     compileSdk 33
 
+
+
     defaultConfig {
         applicationId "com.nailorsh.morfi"
         minSdk 21

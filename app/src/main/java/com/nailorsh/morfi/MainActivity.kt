@@ -1,13 +1,11 @@
 package com.nailorsh.morfi
 
-import android.annotation.SuppressLint
-import android.app.Activity
-import android.content.Intent
-import android.net.Uri
+import android.content.Context
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -23,15 +21,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nailorsh.morfi.ui.theme.MorfiTheme
+import java.io.BufferedReader
+import java.io.InputStream
+import java.io.InputStreamReader
 
-@Suppress("DEPRECATION")
 class MainActivity : ComponentActivity() {
-    private val REQUEST_CODE_FILE_PICKER = 100
-
-    @SuppressLint("Recycle")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -41,76 +39,88 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    Greeting(onFileSelected = { uri ->
-                        val inputStream = contentResolver.openInputStream(uri)
-                        val fileContent = inputStream?.bufferedReader().use { it?.readText() }
-                        Toast.makeText(this, fileContent, Toast.LENGTH_LONG).show()
-                    })
+                    Greeting(this@MainActivity)
                 }
             }
         }
     }
+}
 
-    fun onFileSelected() {
+@Composable
+fun Greeting(context: Context) {
+    val image = painterResource(R.drawable.nv_command)
 
+    var text by remember {
+        mutableStateOf("Hello")
     }
 
-    @Composable
-    fun Greeting(onFileSelected: (Uri) -> Unit) {
-        val image = painterResource(R.drawable.nv_command)
+    val openFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri ->
+            val mimeType: String? = context.contentResolver.getType(uri)
+            val inputStream = context.contentResolver.openInputStream(uri)
+            val bufferedReader = BufferedReader(InputStreamReader(inputStream))
+            val wordsList = mutableListOf<String>()
 
-        var text by remember {
-            mutableStateOf("Hello")
+            when(mimeType) {
+                "text/plain" -> {
+                    val fileText = inputStream?.bufferedReader()?.readText()
+                    val words = fileText?.split("[\\W\\d]+".toRegex()) ?: emptyList()
+                    text = words.toString() // ?: "Empty file"
+                }
+
+//                "application/epub+zip" -> {
+//                    val reader = EpubReader()
+//                    val book = reader.readEpub(inputStream)
+//                    val content = book.contents.filter { it.mediaType == "application/xhtml+xml" }
+//                    content.flatMap { it.read().words() }
+////                    text = "$mimeType"
+//                }
+                else -> text = "$mimeType"
+            }
+//            val fb2Book = FictionBook.read(inputStream)
+//            val byteArray = inputStream?.readBytes()
+
+//            bufferedReader.useLines { lines ->
+//                lines.forEach {
+//                    wordsList.addAll(it.split("\\s".toRegex()).map { word -> word.trim() })
+//                }
+//            }
+//            text = mimeType + " |||  " + wordsList.joinToString(", ")
         }
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+    )
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Image(
+            painter = image,
+            contentDescription = "NV",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .size(200.dp)
+                .clip(CircleShape)
+                .border(0.5.dp, Color.Black, CircleShape)
+        )
+        Button(
+            onClick = {
+                openFileLauncher.launch("*/*")
+            },
+            modifier = Modifier.padding(top = 100.dp)
         ) {
-            Image(
-                painter = image,
-                contentDescription = "NV",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(200.dp)
-                    .clip(CircleShape)
-                    .border(0.5.dp, Color.Black, CircleShape)
-            )
-            Button(
-                onClick = {
-                    val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
-                        type = "*/*" // все типы файлов
-                        putExtra(
-                            Intent.EXTRA_MIME_TYPES,
-                            arrayOf("text/plain", "application/x-fictionbook", "application/epub+zip")
-                        )
-                    }
-                    startActivityForResult(Intent.createChooser(intent, "Выберите файл"), REQUEST_CODE_FILE_PICKER)
-                },
-                modifier = Modifier.padding(top = 100.dp)
-            ) {
-                Text(
-                    text = "Выбрать файл"
-                )
-            }
-
             Text(
-                text = text,
-                modifier = Modifier.padding(top = 20.dp)
+                text = stringResource(R.string.choose_file_button)
             )
         }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_CODE_FILE_PICKER && resultCode == Activity.RESULT_OK) {
-            val uri = data?.data // Uri выбранного файла
-            if (uri != null) {
-//                onFileSelected(uri)
-            }
-        }
+        Text(
+            text = text,
+            modifier = Modifier.padding(top = 20.dp)
+        )
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable
