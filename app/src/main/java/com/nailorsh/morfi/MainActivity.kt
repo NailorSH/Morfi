@@ -16,7 +16,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -29,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -48,8 +46,6 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.*
 import kotlin.math.min
-import java.io.FileInputStream
-import java.util.zip.ZipInputStream
 
 //import nl.siegmann.epublib.domain.Book
 //import nl.siegmann.epublib.epub.EpubReader
@@ -153,11 +149,13 @@ fun LongNonSingleRoot(
 fun readFB2(context: Context, uri: Uri): String {
     val inputStream = context.contentResolver.openInputStream(uri)
     val contents = inputStream?.bufferedReader().use { it?.readText() ?: "" }
+    inputStream?.close()
 
     return contents
         .replace(Regex("<binary.*?</binary>"), "")
         .replace(Regex("<.*?>"), "")
 }
+
 
 @Composable
 fun Greeting(context: Context) {
@@ -171,9 +169,6 @@ fun Greeting(context: Context) {
 
     var resultList by remember { mutableStateOf(ArrayList<Pair<String, Int>>()) }
     var resultText by remember { mutableStateOf("") }
-
-    val state = rememberLazyListState()
-
 
     val openFileLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
@@ -190,16 +185,7 @@ fun Greeting(context: Context) {
                     fileText = inputStream?.bufferedReader()?.readText()
                 }
 
-                else -> {
-                    fileText = readFB2(context, uri)
-//                    val bufferedReader =
-//                        BufferedReader(InputStreamReader(inputStream, Charsets.UTF_8))
-//                    val contents = inputStream?.bufferedReader()?.readText()
-//
-//                    fileText = contents
-//                        ?.replace(Regex("<binary.*?</binary>"), "")
-//                        ?.replace(Regex("<.*?>"), "")
-                }
+                else -> fileText = readFB2(context, uri)
             }
             val words = fileText?.split("[\\p{Punct}\\s]+".toRegex())
                 ?.map { it.lowercase(Locale.getDefault()) }
@@ -218,8 +204,6 @@ fun Greeting(context: Context) {
                 System.currentTimeMillis() // запоминаем текущее время после выполнения кода
             val elapsedTime = endTime - startTime // вычисляем время выполнения в миллисекундах
             timeText = "Время выполнения программы: $elapsedTime мс"
-
-//                    val (strings, ints) = resultList.map { (string, int) -> string to int }.unzip()
 
             for (i in resultList) {
                 resultText += "${i.first} | ${i.first.length} | ${i.second}\n"
@@ -336,19 +320,6 @@ fun Greeting(context: Context) {
                 modifier = Modifier
                     .padding(start = 10.dp, bottom = 5.dp)
             )
-
-//            Text(
-//                text = "(слово | длина | частота)",
-//                fontStyle = FontStyle.Italic,
-//                modifier = Modifier
-//                    .padding(start = 15.dp, bottom = 10.dp)
-//            )
-
-//            Text(
-//                text = resultText,
-//                modifier = Modifier
-//                    .padding(start = 5.dp, bottom = 10.dp)
-//            )
         }
 
         Header()
@@ -361,55 +332,6 @@ fun Greeting(context: Context) {
                 }
             }
         }
-
-
-//
-
-
-//        Column(
-//            Modifier
-//                .fillMaxWidth()
-//                .padding(start = 5.dp, end = 5.dp, top = 50.dp, bottom = 10.dp)
-//        ) {
-//            Row(
-//                modifier = Modifier
-//                    .fillMaxWidth(),
-//                horizontalArrangement = Arrangement.SpaceBetween
-//            ) {
-//                Text(
-//                    text = stringResource(R.string.result_words_title),
-//                    fontSize = 18.sp,
-//                    fontWeight = FontWeight.Bold,
-//                    fontStyle = FontStyle.Italic,
-//                    modifier = Modifier
-//                        .weight(3f)
-//                        .padding(start = 10.dp, bottom = 5.dp)
-//                )
-//
-//                Text(
-//                    text = stringResource(R.string.result_frequences_title),
-//                    fontSize = 18.sp,
-//                    fontWeight = FontWeight.Bold,
-//                    fontStyle = FontStyle.Italic,
-//                    modifier = Modifier
-//                        .weight(1f)
-//                        .padding(start = 5.dp, bottom = 5.dp)
-//
-//                )
-//            }
-//
-//            ComposableResultWordsAndFrequency(word1, frequency1)
-//            ComposableResultWordsAndFrequency(word2, frequency2)
-//            ComposableResultWordsAndFrequency(word3, frequency3)
-//            ComposableResultWordsAndFrequency(word4, frequency4)
-//            ComposableResultWordsAndFrequency(word5, frequency5)
-//            ComposableResultWordsAndFrequency(word6, frequency6)
-//            ComposableResultWordsAndFrequency(word7, frequency7)
-//            ComposableResultWordsAndFrequency(word8, frequency8)
-//            ComposableResultWordsAndFrequency(word9, frequency9)
-//            ComposableResultWordsAndFrequency(word10, frequency10)
-//
-//        }
     }
 }
 
