@@ -1,3 +1,11 @@
+//buildscript {
+//    repositories {
+//        maven {
+//            url 'https://github.com/psiegman/mvn-repo/raw/master/releases'
+//        }
+//    }
+//}
+
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
@@ -6,8 +14,6 @@ plugins {
 android {
     namespace 'com.nailorsh.morfi'
     compileSdk 33
-
-
 
     defaultConfig {
         applicationId "com.nailorsh.morfi"
@@ -48,6 +54,8 @@ android {
     }
 }
 
+
+
 dependencies {
 
     implementation 'androidx.core:core-ktx:1.7.0'
@@ -62,4 +70,10 @@ dependencies {
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_ui_version"
     debugImplementation "androidx.compose.ui:ui-tooling:$compose_ui_version"
     debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_ui_version"
+    implementation "org.jetbrains.kotlin:kotlin-script-runtime:1.7.0"
+
+//    implementation 'nl.siegmann:epublib-core:3.1.0'
+//    implementation 'nl.siegmann:epublib:3.1.0'
+//    implementation 'com.github.jitpack:android-example:1.0.1'
+//    impn 'nl.siegmann:epublib:3.1.0'
 }

@@ -24,10 +24,19 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.nailorsh.morfi.stemmers.BigWords
+import com.nailorsh.morfi.stemmers.SStem
 import com.nailorsh.morfi.ui.theme.MorfiTheme
 import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader
+import kotlin.math.min
+import java.io.File
+import java.util.*
+import kotlin.collections.ArrayList
+
+//import nl.siegmann.epublib.domain.Book
+//import nl.siegmann.epublib.epub.EpubReader
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,6 +55,81 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+fun rootCompare(str1: String, str2: String): Boolean {
+    val d : Int
+    val lenStr1 : Int = str1.length
+    val lenStr2 : Int = str2.length
+    val minLen : Int = min(lenStr1, lenStr2)
+
+    when (minLen) {
+        1 -> d = 1
+        in 2..3 -> d = 2
+        in 4..5 -> d = 3
+        in 6..7 -> d = 4
+        in 8..12 -> d = 5
+        else -> d = 6
+    }
+
+    for (i in 0..(str1.length-d)) {
+        val subStr = str1.substring(i, i+d)
+        if (str2.contains(subStr)) {
+            return true
+        }
+    }
+    return false
+}
+
+fun LongNonSingleRoot(Words : ArrayList<String>,lang : String = "english", n : Int = 10) : ArrayList<Pair<String, Int>>{
+    val big = BigWords(Words)
+    val stemmer = SStem(lang)
+    val result = ArrayList<Pair<String, Int>>()
+    val resultStem = ArrayList<String>()
+    while (result.size != n && big.size() != 0) {
+        val buf = big.nextWord()
+        val bufStem = if (buf.length > 4)  stemmer.stem(buf) else buf
+        var flag = true
+        val del = ArrayList<Int>()
+        for (i in 0 until resultStem.size)
+            if (rootCompare(bufStem, resultStem[i])) {
+                if (!flag && bufStem.length < 6){
+                    del.add(i)
+                }
+                flag = false
+            }
+        del.reverse()
+        for (i in del){
+            result.remove(result[i])
+            resultStem.remove(resultStem[i])
+        }
+        if (flag) {
+            result.add(Pair(buf, big.count_in_text(buf)))
+            resultStem.add(bufStem)
+        }
+        var len = 0
+        var cou = 0
+        while (result.size == n && big.canNextMin() && len < 6 && cou < 1000){
+            val min = stemmer.stem(big.nextMinWord())
+            flag = true
+            for (i in 0 until resultStem.size)
+                if (rootCompare(min, resultStem[i])) {
+                    if (!flag && min.length in 4..6){
+                        del.add(i)
+                    }
+                    flag = false
+                }
+            del.reverse()
+            for (i in del){
+                result.remove(result[i])
+                resultStem.remove(resultStem[i])
+            }
+            cou++
+            len = min.length
+        }
+        big.startMin()
+    }
+    return result
+}
+
 @Composable
 fun Greeting(context: Context) {
     val image = painterResource(R.drawable.nv_command)
@@ -59,14 +143,33 @@ fun Greeting(context: Context) {
         onResult = { uri ->
             val mimeType: String? = context.contentResolver.getType(uri)
             val inputStream = context.contentResolver.openInputStream(uri)
-            val bufferedReader = BufferedReader(InputStreamReader(inputStream))
+            val bufferedReader = BufferedReader(InputStreamReader(inputStream, Charsets.UTF_8))
             val wordsList = mutableListOf<String>()
 
             when(mimeType) {
                 "text/plain" -> {
                     val fileText = inputStream?.bufferedReader()?.readText()
-                    val words = fileText?.split("[\\W\\d]+".toRegex()) ?: emptyList()
-                    text = words.toString() // ?: "Empty file"
+                    val words = fileText?.split("[\\W\\d]+".toRegex())
+                        ?.map { it.lowercase(Locale.getDefault()) }
+                        ?.toCollection(ArrayList<String>()) ?: emptyList()
+
+                    val resultList = LongNonSingleRoot(words as ArrayList<String>, lang = "russian", n = 10)
+                    val (strings, ints) = resultList.map { (string, int) -> string to int }.unzip()
+
+                    text = strings.toString()
+//                    val resultText = words.toString() // ?: "Empty file"
+//                    val Arr = ArrayList<String>()
+//                    File("").forEachLine { line ->
+//                        val lineWords = line.split("[\\p{Punct}\\s]+".toRegex())
+//                        lineWords.forEach { word ->
+//                            Arr.add(word.lowercase())
+//                        }
+//                    }
+//                    val utf8Bytes = fileText?.toByteArray(Charsets.UTF_8)
+//                    val cyrillicText = utf8Bytes?.let { String(it, Charsets.UTF_8) }
+//                    if (cyrillicText != null) {
+//                        text = cyrillicText
+//                    }
                 }
 
 //                "application/epub+zip" -> {
