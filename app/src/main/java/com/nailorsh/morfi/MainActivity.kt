@@ -1,5 +1,7 @@
 package com.nailorsh.morfi
 
+import BigWords
+import Stem
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -14,7 +16,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,16 +29,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.nailorsh.morfi.stemmers.BigWords
-import com.nailorsh.morfi.stemmers.SStem
 import com.nailorsh.morfi.ui.theme.MorfiTheme
 import java.io.BufferedReader
-import java.io.InputStream
 import java.io.InputStreamReader
-import kotlin.math.min
-import java.io.File
 import java.util.*
-import kotlin.collections.ArrayList
+import kotlin.math.min
 
 //import nl.siegmann.epublib.domain.Book
 //import nl.siegmann.epublib.epub.EpubReader
@@ -60,10 +56,10 @@ class MainActivity : ComponentActivity() {
 }
 
 fun rootCompare(str1: String, str2: String): Boolean {
-    val d: Int
-    val lenStr1: Int = str1.length
-    val lenStr2: Int = str2.length
-    val minLen: Int = min(lenStr1, lenStr2)
+    val d : Int
+    val lenStr1 : Int = str1.length
+    val lenStr2 : Int = str2.length
+    val minLen : Int = min(lenStr1, lenStr2)
 
     when (minLen) {
         1 -> d = 1
@@ -74,8 +70,8 @@ fun rootCompare(str1: String, str2: String): Boolean {
         else -> d = 6
     }
 
-    for (i in 0..(str1.length - d)) {
-        val subStr = str1.substring(i, i + d)
+    for (i in 0..(str1.length-d)) {
+        val subStr = str1.substring(i, i+d)
         if (str2.contains(subStr)) {
             return true
         }
@@ -83,29 +79,25 @@ fun rootCompare(str1: String, str2: String): Boolean {
     return false
 }
 
-fun LongNonSingleRoot(
-    Words: ArrayList<String>,
-    lang: String = "english",
-    n: Int = 10
-): ArrayList<Pair<String, Int>> {
+fun LongNonSingleRoot(Words : ArrayList<String>, lang : String = "English", n : Int = 10) : ArrayList<Pair<String, Int>>{
     val big = BigWords(Words)
-    val stemmer = SStem(lang)
+    val stemmer = Class.forName( lang + "Stemmer").newInstance() as Stem
     val result = ArrayList<Pair<String, Int>>()
     val resultStem = ArrayList<String>()
     while (result.size != n && big.size() != 0) {
         val buf = big.nextWord()
-        val bufStem = if (buf.length > 4) stemmer.stem(buf) else buf
+        val bufStem = if (buf.length > 4)  stemmer.getStem(buf) else buf
         var flag = true
         val del = ArrayList<Int>()
         for (i in 0 until resultStem.size)
             if (rootCompare(bufStem, resultStem[i])) {
-                if (!flag && bufStem.length < 6) {
+                if (!flag && bufStem.length < 6){
                     del.add(i)
                 }
                 flag = false
             }
         del.reverse()
-        for (i in del) {
+        for (i in del){
             result.remove(result[i])
             resultStem.remove(resultStem[i])
         }
@@ -115,18 +107,18 @@ fun LongNonSingleRoot(
         }
         var len = 0
         var cou = 0
-        while (result.size == n && big.canNextMin() && len < 6 && cou < 1000) {
-            val min = stemmer.stem(big.nextMinWord())
+        while (result.size == n && big.canNextMin() && len < 6 && cou < 1000){
+            val min = stemmer.getStem(big.nextMinWord())
             flag = true
             for (i in 0 until resultStem.size)
                 if (rootCompare(min, resultStem[i])) {
-                    if (!flag && min.length in 4..6) {
+                    if (!flag && min.length in 4..6){
                         del.add(i)
                     }
                     flag = false
                 }
             del.reverse()
-            for (i in del) {
+            for (i in del){
                 result.remove(result[i])
                 resultStem.remove(resultStem[i])
             }
@@ -184,10 +176,9 @@ fun Greeting(context: Context) {
                         ?.map { it.lowercase(Locale.getDefault()) }
                         ?.toCollection(ArrayList<String>()) ?: emptyList()
 
-
-
+                    val languageStemmer = if(languageName == "Русский") "Russian" else languageName
                     val resultList =
-                        LongNonSingleRoot(words as ArrayList<String>, lang = "russian", n = 10)
+                        LongNonSingleRoot(words as ArrayList<String>, lang = languageStemmer, n = 10)
                     val (strings, ints) = resultList.map { (string, int) -> string to int }.unzip()
 
                     for (i in resultList) {
@@ -246,6 +237,7 @@ fun Greeting(context: Context) {
         ) {
             Button(
                 onClick = {
+                    resultText = ""
                     openFileLauncher.launch("*/*")
                 },
                 modifier = Modifier.weight(3f)

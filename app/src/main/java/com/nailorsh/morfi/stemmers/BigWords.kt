@@ -1,5 +1,3 @@
-package com.nailorsh.morfi.stemmers
-
 class BigWords(Words: ArrayList<String>) {
     private val wordCount = HashMap<String, Int>()
     private val maxLen = 10000;

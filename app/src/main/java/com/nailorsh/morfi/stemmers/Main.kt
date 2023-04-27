@@ -1,5 +1,3 @@
-package com.nailorsh.morfi.stemmers
-
 import kotlin.math.min
 import java.io.File
 
@@ -27,14 +25,14 @@ fun rootCompare(str1: String, str2: String): Boolean {
     return false
 }
 
-fun LongNonSingleRoot(Words : ArrayList<String>,lang : String = "english", n : Int = 10) : ArrayList<Pair<String, Int>>{
+fun LongNonSingleRoot(Words : ArrayList<String>, lang : String = "English", n : Int = 10) : ArrayList<Pair<String, Int>>{
     val big = BigWords(Words)
-    val stemmer = SStem(lang)
+    val stemmer = Class.forName( lang + "Stemmer").newInstance() as Stem
     val result = ArrayList<Pair<String, Int>>()
     val resultStem = ArrayList<String>()
     while (result.size != n && big.size() != 0) {
         val buf = big.nextWord()
-        val bufStem = if (buf.length > 4)  stemmer.stem(buf) else buf
+        val bufStem = if (buf.length > 4)  stemmer.getStem(buf) else buf
         var flag = true
         val del = ArrayList<Int>()
         for (i in 0 until resultStem.size)
@@ -56,7 +54,7 @@ fun LongNonSingleRoot(Words : ArrayList<String>,lang : String = "english", n : I
         var len = 0
         var cou = 0
         while (result.size == n && big.canNextMin() && len < 6 && cou < 1000){
-            val min = stemmer.stem(big.nextMinWord())
+            val min = stemmer.getStem(big.nextMinWord())
             flag = true
             for (i in 0 until resultStem.size)
                 if (rootCompare(min, resultStem[i])) {
@@ -80,13 +78,13 @@ fun LongNonSingleRoot(Words : ArrayList<String>,lang : String = "english", n : I
 
 fun main(args: Array<String>) {
     val Arr = ArrayList<String>()
-    File("C:/Users/Viktor/Downloads/libstemmer-com.nailorsh.morfi.stemmers.main/libstemmer-com.nailorsh.morfi.stemmers.main/input.txt").forEachLine { line ->
+    File("C:/Users/Viktor/Downloads/libstemmer-main/libstemmer-main/input.txt").forEachLine { line ->
         val lineWords = line.split("[\\p{Punct}\\s]+".toRegex())
         lineWords.forEach { word ->
             Arr.add(word.lowercase())
         }
     }
 
-    for (i in LongNonSingleRoot(Arr, lang = "russian", n = 10))
+    for (i in LongNonSingleRoot(Arr, n = 10))
         println(i.first + " " + i.first.length + " " + i.second)
 }
