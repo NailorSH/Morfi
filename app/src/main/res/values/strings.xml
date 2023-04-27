@@ -2,6 +2,7 @@
     <string name="app_name">Morfi</string>
     <string name="result_text">Результат:</string>
     <string name="choose_file_button">Выбрать файл</string>
-    <string name="result_words_title">  Слова</string>
+    <string name="result_words_title">  Слово</string>
     <string name="result_frequences_title">  Частота</string>
+    <string name="result_length_title">Длина</string>
 </resources>
