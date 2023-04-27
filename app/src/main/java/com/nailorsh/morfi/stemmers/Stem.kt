@@ -87,5 +87,4 @@ class SStem(lang: String) {
             word
         else step4c(step4b(step4a(step3(step2(step1(word))))))
     }
-
 }

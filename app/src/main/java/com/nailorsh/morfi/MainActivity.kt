@@ -22,8 +22,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.nailorsh.morfi.stemmers.BigWords
 import com.nailorsh.morfi.stemmers.SStem
 import com.nailorsh.morfi.ui.theme.MorfiTheme
@@ -134,9 +137,27 @@ fun LongNonSingleRoot(Words : ArrayList<String>,lang : String = "english", n : I
 fun Greeting(context: Context) {
     val image = painterResource(R.drawable.nv_command)
 
-    var text by remember {
-        mutableStateOf("Hello")
-    }
+    var word1 by remember { mutableStateOf("") }
+    var word2 by remember { mutableStateOf("") }
+    var word3 by remember { mutableStateOf("") }
+    var word4 by remember { mutableStateOf("") }
+    var word5 by remember { mutableStateOf("") }
+    var word6 by remember { mutableStateOf("") }
+    var word7 by remember { mutableStateOf("") }
+    var word8 by remember { mutableStateOf("") }
+    var word9 by remember { mutableStateOf("") }
+    var word10 by remember { mutableStateOf("") }
+
+    var frequency1 by remember { mutableStateOf("") }
+    var frequency2 by remember { mutableStateOf("") }
+    var frequency3 by remember { mutableStateOf("") }
+    var frequency4 by remember { mutableStateOf("") }
+    var frequency5 by remember { mutableStateOf("") }
+    var frequency6 by remember { mutableStateOf("") }
+    var frequency7 by remember { mutableStateOf("") }
+    var frequency8 by remember { mutableStateOf("") }
+    var frequency9 by remember { mutableStateOf("") }
+    var frequency10 by remember { mutableStateOf("") }
 
     val openFileLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
@@ -144,7 +165,6 @@ fun Greeting(context: Context) {
             val mimeType: String? = context.contentResolver.getType(uri)
             val inputStream = context.contentResolver.openInputStream(uri)
             val bufferedReader = BufferedReader(InputStreamReader(inputStream, Charsets.UTF_8))
-            val wordsList = mutableListOf<String>()
 
             when(mimeType) {
                 "text/plain" -> {
@@ -156,46 +176,36 @@ fun Greeting(context: Context) {
                     val resultList = LongNonSingleRoot(words as ArrayList<String>, lang = "russian", n = 10)
                     val (strings, ints) = resultList.map { (string, int) -> string to int }.unzip()
 
-                    text = strings.toString()
-//                    val resultText = words.toString() // ?: "Empty file"
-//                    val Arr = ArrayList<String>()
-//                    File("").forEachLine { line ->
-//                        val lineWords = line.split("[\\p{Punct}\\s]+".toRegex())
-//                        lineWords.forEach { word ->
-//                            Arr.add(word.lowercase())
-//                        }
-//                    }
-//                    val utf8Bytes = fileText?.toByteArray(Charsets.UTF_8)
-//                    val cyrillicText = utf8Bytes?.let { String(it, Charsets.UTF_8) }
-//                    if (cyrillicText != null) {
-//                        text = cyrillicText
-//                    }
+                    word1 = strings[0]
+                    word2 = strings[1]
+                    word3 = strings[2]
+                    word4 = strings[3]
+                    word5 = strings[4]
+                    word6 = strings[5]
+                    word7 = strings[6]
+                    word8 = strings[7]
+                    word9 = strings[8]
+                    word10 = strings[9]
+
+                    frequency1 = "${ints[0]}"
+                    frequency2 = "${ints[1]}"
+                    frequency3 = "${ints[2]}"
+                    frequency4 = "${ints[3]}"
+                    frequency5 = "${ints[4]}"
+                    frequency6 = "${ints[5]}"
+                    frequency7 = "${ints[6]}"
+                    frequency8 = "${ints[7]}"
+                    frequency9 = "${ints[8]}"
+                    frequency10 = "${ints[9]}"
                 }
 
-//                "application/epub+zip" -> {
-//                    val reader = EpubReader()
-//                    val book = reader.readEpub(inputStream)
-//                    val content = book.contents.filter { it.mediaType == "application/xhtml+xml" }
-//                    content.flatMap { it.read().words() }
-////                    text = "$mimeType"
-//                }
-                else -> text = "$mimeType"
             }
-//            val fb2Book = FictionBook.read(inputStream)
-//            val byteArray = inputStream?.readBytes()
-
-//            bufferedReader.useLines { lines ->
-//                lines.forEach {
-//                    wordsList.addAll(it.split("\\s".toRegex()).map { word -> word.trim() })
-//                }
-//            }
-//            text = mimeType + " |||  " + wordsList.joinToString(", ")
         }
     )
 
     Column(
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
@@ -203,27 +213,98 @@ fun Greeting(context: Context) {
             contentDescription = "NV",
             contentScale = ContentScale.Crop,
             modifier = Modifier
+                .padding(top = 25.dp)
                 .size(200.dp)
                 .clip(CircleShape)
                 .border(0.5.dp, Color.Black, CircleShape)
+
         )
         Button(
             onClick = {
                 openFileLauncher.launch("*/*")
             },
-            modifier = Modifier.padding(top = 100.dp)
+            modifier = Modifier.padding(top = 70.dp)
         ) {
             Text(
                 text = stringResource(R.string.choose_file_button)
             )
         }
-        Text(
-            text = text,
-            modifier = Modifier.padding(top = 20.dp)
-        )
+
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(start = 5.dp, end = 5.dp, top = 50.dp, bottom = 10.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = stringResource(R.string.result_words_title),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontStyle = FontStyle.Italic,
+                    modifier = Modifier
+                        .weight(3f)
+                        .padding(start = 10.dp, bottom = 5.dp)
+                )
+
+                Text(
+                    text = stringResource(R.string.result_frequences_title),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontStyle = FontStyle.Italic,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 5.dp, bottom = 5.dp)
+
+                )
+
+            }
+
+            ComposableResultWordsAndFrequency(word1, frequency1)
+            ComposableResultWordsAndFrequency(word2, frequency2)
+            ComposableResultWordsAndFrequency(word3, frequency3)
+            ComposableResultWordsAndFrequency(word4, frequency4)
+            ComposableResultWordsAndFrequency(word5, frequency5)
+            ComposableResultWordsAndFrequency(word6, frequency6)
+            ComposableResultWordsAndFrequency(word7, frequency7)
+            ComposableResultWordsAndFrequency(word8, frequency8)
+            ComposableResultWordsAndFrequency(word9, frequency9)
+            ComposableResultWordsAndFrequency(word10, frequency10)
+
+        }
     }
 }
 
+
+@Composable
+fun ComposableResultWordsAndFrequency(word: String, frequency: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(width = 1.dp, color = Color.Gray),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+
+    ) {
+        Text(
+            text = "  $word",
+            fontStyle = FontStyle.Italic,
+            modifier = Modifier
+                .padding(start = 1.dp)
+                .weight(3f)
+                .border(width = 1.dp, color = Color.Gray)
+        )
+        Text(
+            text = "  $frequency",
+            modifier = Modifier
+                .padding(start = 2.dp)
+                .weight(1f)
+        )
+    }
+}
 
 @Preview(showBackground = true)
 @Composable
